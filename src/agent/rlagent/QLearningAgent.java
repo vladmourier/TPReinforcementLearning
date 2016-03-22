@@ -66,8 +66,16 @@ public class QLearningAgent extends RLAgent{
      */
     @Override
     public double getQValeur(Etat e, Action a) {
-        //TODO
-        return 0.0;
+        Double d = 0.;
+        if(Q.containsKey(e)){
+            HashMap<Action, Double> map = Q.get(e);
+            if(map.containsKey(a)){
+                if(map.get(a) != null){
+                    d = map.get(a);
+                }
+            }
+        }
+        return d;
     }
     
     /**
@@ -76,6 +84,7 @@ public class QLearningAgent extends RLAgent{
     @Override
     public void setQValeur(Etat e, Action a, double d) {
         //TODO
+        addQValue(e, a, d);
         
         
         //mise a jour vmin et vmax pour affichage gradient de couleur
@@ -98,8 +107,16 @@ public class QLearningAgent extends RLAgent{
      */
     @Override
     public void endStep(Etat e, Action a, Etat esuivant, double reward) {
-        //TODO
+        Double value, max=0.;
         
+        for(Action action : Q.get(esuivant).keySet())
+        {
+            if ((value = getQValeur(esuivant, a))>max){
+                max = value;
+            }
+        }
+        value = ((1-alpha)*getQValeur(e, a)) + alpha*(reward + (gamma * max));
+        setQValeur(e, a, value);
     }
     
     @Override
@@ -116,22 +133,10 @@ public class QLearningAgent extends RLAgent{
         super.reset();
         this.episodeNb =0;
         //TODO
+        this.Q = new HashMap<>();
         
         
         this.notifyObs();
-    }
-    
-    public Double getQValue(Etat e, Action a){
-        Double d = 0.;
-        if(Q.containsKey(e)){
-            HashMap<Action, Double> map = Q.get(e);
-            if(map.containsKey(a)){
-                if(map.get(a) != null){
-                    d = map.get(a);
-                }
-            }
-        }
-        return d;
     }
     
     public void addQValue(Etat e, Action a, Double d){
@@ -145,6 +150,5 @@ public class QLearningAgent extends RLAgent{
             map.put(a, d);
             Q.put(e, map);
         }
-    }
-    
+    }    
 }
