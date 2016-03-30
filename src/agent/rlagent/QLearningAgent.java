@@ -7,6 +7,7 @@ import java.util.List;
 import environnement.Action;
 import environnement.Environnement;
 import environnement.Etat;
+import java.util.Set;
 /**
  *
  * @author laetitiamatignon
@@ -28,8 +29,6 @@ public class QLearningAgent extends RLAgent{
         super(alpha, gamma,_env);
         //TODO
         this.Q = new HashMap<>();
-        
-        
     }
     
     
@@ -42,10 +41,18 @@ public class QLearningAgent extends RLAgent{
      */
     @Override
     public List<Action> getPolitique(Etat e) {
-        //TODO
-        return null;
-        
-        
+        List<Action> actions = this.getActionsLegales(e), politique = new ArrayList<>();
+        double max = 0;
+        for(Action ac : actions){
+            if(getQValeur(e, ac)> max){
+                max = getQValeur(e, ac);
+                actions.clear();
+            }
+            if(getQValeur(e, ac)== max){
+                actions.add(ac);
+            }
+        }
+        return politique;
     }
     
     /**
@@ -53,9 +60,18 @@ public class QLearningAgent extends RLAgent{
      */
     @Override
     public double getValeur(Etat e) {
-        //TODO
+        double max =0;
+        if(Q.containsKey(e)){
+            if(!Q.get(e).isEmpty()){
+                for(Action d : Q.get(e).keySet()){
+                    if(Q.get(e).get(d)>max){
+                        max = Q.get(e).get(d);
+                    }
+                }
+                return max;
+            }
+        }
         return 0.0;
-        
     }
     
     /**
@@ -107,16 +123,24 @@ public class QLearningAgent extends RLAgent{
      */
     @Override
     public void endStep(Etat e, Action a, Etat esuivant, double reward) {
-        Double value, max=0.;
-        
-        for(Action action : Q.get(esuivant).keySet())
-        {
-            if ((value = getQValeur(esuivant, a))>max){
-                max = value;
+        Double value , max=0.;
+        if(Q.containsKey(esuivant)){
+            List<Action> actions = this.getActionsLegales(esuivant);
+            for(Action action : actions)
+            {
+                if (getQValeur(esuivant, action)>max){
+                    max = getQValeur(esuivant, action);
+                }
             }
+            value = ((1-alpha)*getQValeur(e, a)) + alpha*(reward + (gamma * max));
+            System.out.println(actions.size());
+            setQValeur(e, a, value);
+        } else {
+            value=new Double(0);
+            setQValeur(e, a, value);
         }
-        value = ((1-alpha)*getQValeur(e, a)) + alpha*(reward + (gamma * max));
-        setQValeur(e, a, value);
+        System.out.println("value =" +value);
+        System.out.println("reward =" +reward);
     }
     
     @Override
@@ -150,5 +174,5 @@ public class QLearningAgent extends RLAgent{
             map.put(a, d);
             Q.put(e, map);
         }
-    }    
+    }
 }
