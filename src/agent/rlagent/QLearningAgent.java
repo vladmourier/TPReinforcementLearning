@@ -125,15 +125,7 @@ public class QLearningAgent extends RLAgent{
     public void endStep(Etat e, Action a, Etat esuivant, double reward) {
         Double value , max=0.;
         if(Q.containsKey(esuivant)){
-            List<Action> actions = this.getActionsLegales(esuivant);
-            for(Action action : actions)
-            {
-                if (getQValeur(esuivant, action)>max){
-                    max = getQValeur(esuivant, action);
-                }
-            }
-            value = ((1-alpha)*getQValeur(e, a)) + alpha*(reward + (gamma * max));
-            System.out.println(actions.size());
+            value = ((1-alpha)*getQValeur(e, a)) + alpha*(reward + (gamma * getValeur(esuivant)));
             setQValeur(e, a, value);
         } else {
             value=new Double(0);
@@ -141,6 +133,19 @@ public class QLearningAgent extends RLAgent{
         }
         System.out.println("value =" +value);
         System.out.println("reward =" +reward);
+        HashMap<Action, Double> map;
+        
+        for(Etat successeur : getEnv().getEtatSuccesseurs(e, a)){
+            map = new HashMap<>();
+            for(Action possibility : this.getActionsLegales(successeur)){
+                map.put(possibility, 0.);
+            }
+            Q.put(successeur,map );
+        }
+        
+        if(reward == 1){
+            System.out.println("J");
+        }
     }
     
     @Override
@@ -158,7 +163,6 @@ public class QLearningAgent extends RLAgent{
         this.episodeNb =0;
         //TODO
         this.Q = new HashMap<>();
-        
         
         this.notifyObs();
     }
